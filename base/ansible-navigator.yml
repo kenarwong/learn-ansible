@@ -1,0 +1,11 @@
+---
+ansible-navigator:
+  execution-environment:
+    enabled: False
+
+      #  ansible:
+      #    config:
+      #      path: /mnt/hgfs/learn-ansible/base/ansible.cfg
+      #    inventory:
+      #        entries:
+      #          - /mnt/hgfs/learn-ansible/base/inventory.ini
