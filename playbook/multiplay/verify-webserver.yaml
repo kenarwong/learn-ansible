@@ -36,5 +36,5 @@
     uri:
       url: http://server1
       return_content: yes
-      status_code: 200
+      status_code: 200              # code expected to determine success
 ...

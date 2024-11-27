@@ -1,0 +1,14 @@
+---
+- name: system configuration checks
+  hosts: all
+  become: true
+  tasks:
+    - name: check user exists
+      command:
+        cmd: id myuser
+      register: user_check
+    - name: report user status
+      debug:
+        msg: "User 'myuser' exists."
+      when: user_check.rc == 0
+

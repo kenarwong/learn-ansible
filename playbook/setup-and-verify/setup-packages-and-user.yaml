@@ -1,0 +1,16 @@
+---
+- name: basic system setup
+  hosts: all
+  become: true
+  tasks:
+  - name: update all security-related packages
+    package:                  # manages packages without module
+      name: '*'
+      state: latest
+      security: true
+  
+  - name: create a new user
+    user:
+      name: myuser
+      state: present
+      create_home: true

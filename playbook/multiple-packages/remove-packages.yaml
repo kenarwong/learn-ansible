@@ -1,0 +1,11 @@
+---
+- name: remove several packages
+  hosts: server1
+  tasks:
+  - name: Remove httpd and mysql and tmux
+    dnf:
+      name:
+        - httpd
+        - mysql
+        - tmux
+      state: absent
