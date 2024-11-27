@@ -1,5 +1,5 @@
 ---
-- name: task name here
+- name: install start and enable httpd
   become: yes
   hosts: all # you can use limit clause
   tasks:
@@ -8,7 +8,7 @@
       name: httpd
       state: present
   
-  - name: enable service
+  - name: start and enable service
     service:
       name: httpd
       state: started
