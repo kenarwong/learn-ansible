@@ -1,0 +1,19 @@
+---
+- name: Copy custom facts to host
+  hosts: all
+  vars:
+    remote_dir: /etc/ansible/facts.d
+    facts_file: custom.fact
+  tasks:
+  - name: Create directory for custom fact
+    file:
+      state: directory
+      recurse: yes
+      path: "{{ remote_dir }}"
+  - name: Copy file to remote directory
+    copy:
+      src: "{{ facts_file }}"
+      dest: "{{ remote_dir }}"
+  - name: Display custom fact
+    debug:
+      msg: "{{ ansible_facts['ansible_local']['custom']['packages']['web_package'] }}"

@@ -1,0 +1,17 @@
+---
+- name: Copy facts to manage hosts
+  hosts: all
+  vars:
+    remote_dir: /etc/ansible/facts.d 
+    fact_file_dir: /mnt/hgfs/learn-ansible/variables/lab/custom_facts/
+  tasks:
+    - name: Create file directory
+      file:
+        state: directory
+        recurse: yes
+        path: "{{ remote_dir }}"
+    - name: Copy fact files
+      copy:
+        src: "{{ fact_file_dir }}"
+        dest: "{{ remote_dir }}"
+

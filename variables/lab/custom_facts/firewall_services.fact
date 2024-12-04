@@ -1,0 +1,2 @@
+[firewall]
+web_service = http

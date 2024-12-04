@@ -1,0 +1,10 @@
+---
+- name: using a variable include file
+  hosts: server1
+  vars_files: vars/common
+  tasks:
+  - name: install package
+    yum:
+      name: "{{ my_package }}"
+      state: latest
+

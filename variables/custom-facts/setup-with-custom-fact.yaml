@@ -1,0 +1,25 @@
+---
+- name: Copy custom facts to host and install software specified in custom facts 
+  hosts: all
+  vars:
+    remote_dir: /etc/ansible/facts.d
+    facts_file: custom-software.fact
+  tasks:
+  - name: Create directory for custom fact
+    file:
+      state: directory
+      recurse: yes
+      path: "{{ remote_dir }}"
+  - name: Copy file to remote directory
+    copy:
+      src: "{{ facts_file }}"
+      dest: "{{ remote_dir }}"
+  - name: Install package
+    dnf:
+      name: "{{ ansible_facts['ansible_local']['custom-software']['software']['package'] }}"
+      state: latest
+  - name: Start and enable service
+    service:
+      name: "{{ ansible_facts['ansible_local']['custom-software']['software']['service'] }}"
+      state: "{{ ansible_facts['ansible_local']['custom-software']['software']['state'] }}"
+      enabled: "{{ ansible_facts['ansible_local']['custom-software']['software']['enabled'] }}"

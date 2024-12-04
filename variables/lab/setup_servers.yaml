@@ -1,0 +1,85 @@
+---
+- name: Set up file services
+  hosts: file
+  vars_files: vars/allvars.yaml
+  tasks:
+    - name: Install packages
+      dnf:
+        name: 
+          - "{{ ansible_local.packages.packages.smb_package }}"
+          - "{{ ansible_local.packages.packages.ftp_package }}"
+          - "{{ ansible_local.packages.packages.firewall_package }}"
+        state: latest
+    - name: Start and enable services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        # - "{{ ansible_local.services.services.smb_service }}"
+        # - "{{ ansible_local.services.services.ftp_service }}"
+        - "{{ ansible_local.services.services.firewall_service }}"
+          # - name: Allow firewall services
+          #   firewalld:
+          #     service: "{{ item }}"
+          #     state: enabled
+          #     immediate: true
+          #     permanent: true
+          #   loop:
+          #     # - "{{ ansible_local.services.services.smb_service }}"
+          #     # - "{{ ansible_local.services.services.ftp_service }}"
+
+- name: Set up lamp services
+  hosts: lamp
+  vars_files: vars/allvars.yaml
+  tasks:
+    - name: Install packages
+      dnf:
+        name: 
+          - "{{ ansible_local.packages.packages.db_package }}"
+          - "{{ ansible_local.packages.packages.web_package }}"
+          - "{{ ansible_local.packages.packages.firewall_package }}"
+        state: latest
+          # - name: Reload systemd daemon
+          #   ansible.builtin.systemd_service:
+          #     daemon_reload: true
+    - name: Start and enable services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        - "{{ ansible_local.services.services.db_service }}"
+        - "{{ ansible_local.services.services.web_service }}"
+        - "{{ ansible_local.services.services.firewall_service }}"
+    - name: Allow firewall services
+      firewalld:
+        service: "{{ item }}"
+        state: enabled
+        immediate: true
+        permanent: true
+      loop:
+        - "{{ ansible_local.firewall_services.firewall.web_service }}"
+    - name: Allow mariadb firewall port
+      firewalld:
+        port: 3306/tcp
+        state: enabled
+        immediate: true
+        permanent: true
+    - name: Reload firewall
+      ansible.builtin.command: firewall-cmd --reload 
+    - name: Create landing page
+      copy:
+        content: "Welcome to the Ansible Web Server"
+        dest: "{{ web_root }}/index.html"
+
+- name: Test web server
+  hosts: localhost
+  become: false
+  tasks:
+  - name: Test web server
+    uri: 
+      url: http://server2
+      return_content: yes
+      status_code: 200              
+

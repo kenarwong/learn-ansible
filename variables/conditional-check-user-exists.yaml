@@ -1,0 +1,16 @@
+---
+- name: System Configuration Checks
+  hosts: server1
+  become: true
+  vars:
+    user_name: 'lisa'
+  tasks:
+    - name: Check user existence
+      ansible.builtin.command:
+        cmd: "id {{ user_name }}"
+      register: user_check
+
+    - name: Report user status
+      ansible.builtin.debug:
+        msg: "User {{ user_name }} exists."
+      when: user_check.rc == 0
