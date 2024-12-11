@@ -1,0 +1,26 @@
+---
+- name: restart sshd service if httpd is running
+  hosts: server1
+  tasks:
+    - name: install httpd
+      yum:
+        name: httpd
+        state: latest
+    - name: stop httpd service
+      service:
+        name: httpd
+        state: stopped  # change to started to remove error
+    - name: get httpd service status
+      command: systemctl is-active httpd
+      ignore_errors: yes  # allows following tasks to run even if this task fails
+      register: result
+    - name: show result
+      debug:
+        msg: "printing contents {{ result }}"
+    # now use a conditional to handle the result
+    # i.e. only restart if httpd is running
+    - name:  restart sshd service
+      service:
+        name: sshd
+        state: restarted
+      when: result.rc == 0

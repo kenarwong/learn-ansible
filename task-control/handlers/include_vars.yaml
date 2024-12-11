@@ -1,0 +1,16 @@
+---
+- name: Notify multiple handlers
+  hosts: all
+  tasks:
+    - name: Set host variables based on distribution
+      include_vars: "{{ ansible_facts.distribution }}.yml"
+
+  # handlers:
+  # # This handler name may cause your play to fail!
+  # - name: Restart "{{ web_service_name }}"
+
+  handlers:
+    - name: Restart web service
+      ansible.builtin.service:
+        name: "{{ web_service_name | default('httpd') }}"
+        state: restarted

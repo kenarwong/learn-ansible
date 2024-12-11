@@ -1,0 +1,24 @@
+---
+- name: Notify multiple handlers
+  hosts: all
+  tasks:
+  - name: Template configuration file
+    ansible.builtin.template:
+      src: template.j2
+      dest: /etc/foo.conf
+    # Does not specify execution order
+    notify:
+      - Restart apache
+      - Restart memcached
+
+  # handlers are executed in order as defined here
+  handlers:
+    - name: Restart memcached
+      ansible.builtin.service:
+        name: memcached
+        state: restarted
+
+    - name: Restart apache
+      ansible.builtin.service:
+        name: apache
+        state: restarted

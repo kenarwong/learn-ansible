@@ -1,0 +1,14 @@
+---
+- name: Register output
+  hosts: server1
+  vars:
+    items:
+      - one
+      - two
+  tasks:
+  - name: Register loop output as a variable
+    ansible.builtin.shell: "echo {{ item }}"
+    loop: "{{ items }}"
+    register: echo
+  - debug:
+      var: "echo"

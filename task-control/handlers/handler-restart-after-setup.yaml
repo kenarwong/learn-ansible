@@ -1,0 +1,43 @@
+---
+- name: create file on localhost
+  hosts: localhost
+  tasks:
+  - name: create index.html on localhost
+    copy:
+      content: "handler test"
+      dest: /tmp/index.html
+  # uncomment to prevent error
+  # - name: create file to prevent error
+  #   copy:
+  #     content: "nothing"
+  #     dest: /tmp/nothing
+
+- name: set up web server
+  hosts: all
+  # force_handlers: yes  # uncomment to force handler to run even if error occurs, will still not run if task status doesn't change
+  tasks:
+  - name: install httpd
+    yum:
+      name: httpd
+      state: latest
+  - name: copy index.html
+    copy:
+      src: /tmp/index.html
+      dest: /var/www/html/index.html
+    notify:
+    - restart_web
+  # error prevents handler from running
+  - name: copy nothing - intended to fail
+    copy:
+      src: /tmp/nothing
+      dest: /var/www/html/nothing.html
+  # even after preventing error, handler still will not run
+  # handlers only run on changed status
+  # this will not run if the "copy index.html" task status doesn't change
+  # to force handler to run, force "copy index.html" task to change status (i.e. delete index.html)
+  # ansible all -m file -a "name=/var/www/html/index.html state=absent"
+  handlers:
+  - name: restart_web
+    service:
+      name: httpd
+      state: restarted

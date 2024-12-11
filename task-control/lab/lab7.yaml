@@ -1,0 +1,66 @@
+---
+# uncomment to force copy task fail
+- name: Create index.html
+  hosts: localhost
+  tasks:
+  - name: Create index.html
+    copy:
+      content: "welcome to my webserver"
+      dest: /tmp/index.html
+
+- name: Install packages, setup firewall, setup webserver
+  hosts: server2
+  vars_files: vars/packages
+  tasks:
+  - name: Install packages, setup firewall
+    block:
+    - name: Install packages
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ packages}}"
+      failed_when: >
+        not (
+          (ansible_facts['os_family'] == "CentOS")
+          or
+          (ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version']|int >= 8)
+        )
+    - name: Open http
+      ansible.posix.firewalld:
+        service: http
+        state: enabled
+        permanent: true
+        immediate: true
+    - name: Open https
+      ansible.posix.firewalld:
+        service: https
+        state: enabled
+        permanent: true
+        immediate: true
+    - name: Copy index.html
+      copy:
+        src: /tmp/index.html
+        dest: /var/www/html/index.html
+      ignore_errors: yes            # rescue doesn't print this error
+      register: result
+      notify:
+      - Restart webserver
+    # - name: debug
+    #   debug:
+    #     var: result
+    - name: Report copy error
+      debug:
+        msg: "Copy task failed."    # but this still prints
+      ignore_errors: yes            # rescue won't print any errors from this module
+      when: result.failed
+    rescue:
+    - name: Report error
+      debug:
+        msg: "Host {{ ansible_play_batch }} does not meet minimal requirements."
+
+  handlers:
+  - name: Restart webserver
+    ansible.builtin.service:
+      name: httpd
+      state: restarted
+

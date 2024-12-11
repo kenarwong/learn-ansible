@@ -1,0 +1,15 @@
+---
+- name: update the kernel
+  hosts: all
+  force_handlers: true
+  tasks:
+  - name: update kernel
+    yum:
+      name: kernel
+      state: latest
+    notify: reboot_server
+  # if kernel is already latest, no status change
+  # handler doesn't run
+  handlers:
+  - name: reboot_server
+    command: reboot

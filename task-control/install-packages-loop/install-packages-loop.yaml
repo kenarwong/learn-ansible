@@ -1,0 +1,11 @@
+
+---
+- name: manage packages from a list
+  hosts: server1
+  vars_files: vars/packages
+  tasks:
+  - name: manage packages
+    yum:
+      name: "{{ item.name}}"
+      state: "{{ item.state }}"
+    loop: "{{ packages }}"

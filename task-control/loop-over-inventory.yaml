@@ -1,0 +1,24 @@
+---
+- name: Loop over inventory
+  hosts: server1
+  tasks:
+  - name: Show all the hosts in the inventory
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    loop: "{{ groups['myhosts'] }}"
+
+  - name: Show all the hosts in the current play
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    loop: "{{ ansible_play_batch }}"
+
+  # using inventory_hostnames lookup plugin
+  - name: Show all the hosts in the inventory
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    loop: "{{ query('inventory_hostnames', 'all') }}"
+
+  - name: Show all the hosts matching the pattern, ie all but the group www
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    loop: "{{ query('inventory_hostnames', 'all:!myhosts') }}" 

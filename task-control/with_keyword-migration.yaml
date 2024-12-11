@@ -1,0 +1,45 @@
+---
+- name: install and start services
+  hosts: server1
+  vars:
+    services:
+    - vsftpd
+    - httpd
+    - smb
+  tasks:
+  - name: install packages
+    yum:
+      name:
+      - vsftpd
+      - httpd
+      - samba
+      state: latest
+  - name: start the services
+    service:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+    #with_items: "{{ services }}"
+    loop: "{{ services }}"
+  
+  - name: with_sequence
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    with_sequence: start=0 end=4 stride=2 format=testuser%02x
+  
+  - name: with_sequence -> loop
+    ansible.builtin.debug:
+      msg: "{{ 'testuser%02x' | format(item) }}"
+    loop: "{{ range(0, 4 + 1, 2)|list }}"
+
+  - name: with_indexed_items
+    ansible.builtin.debug:
+      msg: "{{ item.0 }} - {{ item.1 }}"
+    with_indexed_items: "{{ services }}"
+
+  - name: with_indexed_items -> loop
+    ansible.builtin.debug:
+      msg: "{{ index }} - {{ item }}"
+    loop: "{{ services|flatten(levels=1) }}"
+    loop_control:
+      index_var: index
