@@ -1,0 +1,87 @@
+---
+- name: Managing web server SELinux proper ties
+  hosts: server1
+  tasks:
+    - name: ensure SELinux is enabled and enforcing
+      selinux:
+        policy: targeted
+        state: enforcing
+    - name: install the webserver
+      dnf:
+        name: httpd
+        state: present
+    - name: start and enable the webserver
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+    - name: open the firewall service
+      firewalld:
+        service: http
+        state: enabled
+        immediate: yes
+        permanent: yes
+    - name: reload firewall
+      ansible.builtin.command: firewall-cmd --reload 
+    - name: create the /web directory
+      file:
+        path: /web
+        state: directory
+    - name: create the index.html file in /web
+      copy:
+        content: "hello world"
+        dest: /web/index.html
+    - name: use lineinfile to change webserver configuration
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^DocumentRoot "/var/www/html"'
+        line: DocumentRoot "/web"
+    - name: use lineinfile to change webserver security
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^<Directory "/var/www">'
+        line: '<Directory "/web">'
+      # http needs to be restarted after changing the http config
+      notify:
+        - reload httpd
+    # changing the document root requires SELinux update
+    - name: use sefcontext to set context on new documentroot
+      sefcontext:
+        target: '/web(/.*)?'
+        setype: httpd_sys_content_t
+        state: present
+    # restorecon needs to be run after changing the context, no Ansible module for this
+    - name: run the restorecon command
+      command: restorecon -Rv /web 
+    # for some reason, this never sets the boolean true
+    # never changes, so handler never triggers
+    - name: allow the web server to run user content
+      seboolean:
+        name: httpd_read_user_content
+        state: true
+        persistent: true
+    - name: "checking current httpd_read_user_content Boolean status"
+      shell: "getsebool -a | grep httpd_read_user_content"
+      register: bool_stat
+    - name: showing boolean status
+      debug:
+        msg: "the current httpd_read_user_content status is {{ bool_stat.stdout }}"
+
+  handlers:
+    - name: reload httpd
+      service:
+        name: httpd
+        state: reloaded
+
+- name: Test the web server
+  hosts: localhost
+  tasks:
+    - name: check the web server
+      uri:
+        url: http://server1
+        return_content: yes
+        status_code: 200              
+      register: webcontent
+    - name: show the web server content
+      debug:
+        msg: "the web server content is {{ webcontent.content }}"

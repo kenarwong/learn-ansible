@@ -1,0 +1,17 @@
+---
+- name: blockinfile usage example
+  hosts: all
+  vars:
+    user: ansible
+  tasks:
+  - name: copy /etc/hosts
+    copy:
+      src: /etc/hosts
+      dest: "/home/{{ user }}/hosts"
+  - name: managing /etc/hosts copy example
+    blockinfile:
+      path: "/home/{{ user }}/hosts"
+      block: |
+        192.168.161.71 server1
+        192.168.161.72 server2
+      state: present

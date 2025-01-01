@@ -1,0 +1,59 @@
+---
+- name: create a motd file
+  hosts: all
+  vars:
+    user: ansible
+  tasks:
+    - name: create temporary build directory
+      tempfile:
+        state: directory
+        suffix: build
+    - name: create temporary file
+      tempfile:
+        state: file
+        suffix: temp
+      register: tempfile_1
+    - name: check status of the new file
+      stat:
+        path: "{{ tempfile_1.path }}"
+      register: newfile
+    - name: for debugging only
+      debug:
+        msg: "{{ newfile }}"
+    - name: add text
+      blockinfile:
+        path: "{{ tempfile_1.path }}"
+        block: |
+          Welcome to {{ ansible_hostname }}!
+            - {{ user }} 
+    - name: show the contents of the file
+      shell: "cat {{ tempfile_1.path }}"
+    - name: copy as motd file 
+      shell: "cp {{ tempfile_1.path }} /etc/motd"
+    # copy module does not support remote temporary file to destination on same remote machine
+    # - name: copy as motd file 
+    #   copy:
+    #     src: "{{ tempfile_1.path }}"
+    #     dest: /etc/motd
+    - name: change owner of the motd file
+      file:
+        path: /etc/motd
+        owner: "{{ user }}"
+      when: newfile.stat.pw_name != user 
+    - name: remove temporary file
+      file:
+        path: "{{ tempfile_1.path }}"
+        state: absent
+      when: tempfile_1.path is defined
+
+- name: fetch motd files
+  hosts: all
+  tasks:
+    - name: fetch the edited file
+      fetch:
+        src: /etc/motd
+        dest: /tmp/
+    - name: check status of the file
+      stat:
+        path: "/tmp/{{ item }}/etc/motd"
+      loop: "{{ groups['all'] }}"
