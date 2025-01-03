@@ -1,0 +1,9 @@
+---
+- name: work with template file
+  vars:
+    apache_package: httpd
+  hosts: server1
+  tasks:
+  - template:
+      src: if_template.j2
+      dest: /tmp/httpd.conf

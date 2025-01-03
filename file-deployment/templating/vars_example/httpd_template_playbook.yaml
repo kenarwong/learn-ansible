@@ -1,0 +1,18 @@
+---
+- name: Apache httpd.conf
+  hosts: all
+  become: yes
+  tasks:
+  - name: Create Apache configuration file from template
+    template:
+      src: templates/httpd.conf.j2
+      # a real httpd.conf template would be generated and deployed to dest
+      #dest: /etc/httpd/conf/httpd.conf
+      dest: /tmp/httpd.conf
+    notify:
+        - restart apache
+  handlers:
+    - name: restart apache
+      service:
+        name: httpd
+        state: restarted

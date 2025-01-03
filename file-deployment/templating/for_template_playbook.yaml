@@ -1,0 +1,8 @@
+---
+- name: generete host list
+  hosts: server2
+  tasks:
+  - name: template loop
+    template:
+      src: for_template.j2
+      dest: /tmp/hostports.txt

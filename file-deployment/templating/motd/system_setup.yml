@@ -1,0 +1,14 @@
+---
+- name: Basic System Setup
+  hosts: all
+  become: true
+  tasks:
+    - name: Update MOTD from Jinja2 Template
+      ansible.builtin.template:
+        src: templates/motd.j2
+        dest: /etc/motd
+  handlers:
+    - name: Reload Firewall
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded

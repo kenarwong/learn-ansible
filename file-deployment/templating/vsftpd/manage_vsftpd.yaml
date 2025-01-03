@@ -1,0 +1,67 @@
+---
+- name: Managing vsftpd
+  hosts: server1
+  tasks:
+    - name: install the vsftpd
+      dnf:
+        name: vsftpd
+        state: present
+    - name: start and enable vsftpd
+      service:
+        name: vsftpd
+        state: started
+        enabled: yes
+    - name: open the firewall service
+      firewalld:
+        service: ftp
+        state: enabled
+        immediate: yes
+        permanent: yes
+
+- name: configure vsftpd with template
+  hosts: server1
+  vars:
+    anonymous_enable: yes
+    local_enable: yes
+    write_enable: yes
+    anon_upload_enable: yes
+  tasks:
+  - name: use template to generate vsftpd.conf
+    template:
+      src: templates/vsftpd.conf.j2
+      dest: /etc/vsftpd/vsftpd.conf
+
+- name: Managing security
+  hosts: server1
+  tasks:
+    - name: install required selinux tools
+      dnf:
+        name: policycoreutils-python-utils
+        state: present
+    - name: set permissions
+      file:
+        path: /var/ftp/pub 
+        mode: 0777
+    - name: enabling SELinux
+      selinux:
+        policy: targeted
+        state: enforcing
+    - name: ftpd_anon_write boolean
+      seboolean:
+        name: ftpd_anon_write
+        state: yes
+        persistent: yes
+    - name: set selinux context
+      sefcontext:
+        target: /var/ftp/pub
+        setype: public_content_rw_t
+        state: present
+      notify:
+        - run restorecon
+
+  handlers:
+    - name: run restorecon
+      command: restorecon -vR /var/ftp/pub
+
+
+    

@@ -1,5 +1,5 @@
 ---
-- name: Managing web server SELinux proper ties
+- name: Managing web server SELinux properties
   hosts: server1
   tasks:
     - name: ensure SELinux is enabled and enforcing
